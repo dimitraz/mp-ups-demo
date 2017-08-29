@@ -9,19 +9,19 @@ public class TopicConsumers {
 
     Logger logger = Logger.getLogger(TopicConsumers.class.getName());
 
-    @Consumer(topics = "kafka-published", groupId = "consumer-group-1")
-    public void totalSuccesses(final Long total, final String jobId) {
-        logger.info("Total successes per job: " + total + " jobId: " + jobId);
+    @Consumer(topics = "successMessagesPerJob", groupId = "consumer-group-1")
+    public void totalSuccesses(final String jobId, final Long total) {
+        logger.info("Total successes for jobId " + jobId + ": " + total);
     }
 
-    @Consumer(topics = "kafka-published", groupId = "consumer-group-2")
-    public void totalFailures(final Long total, final String jobId) {
-        logger.info("Total failures per job: " + total + " jobId: " + jobId);
+    @Consumer(topics = "failedMessagesPerJob", groupId = "consumer-group-2")
+    public void totalFailures(final String jobId, final Long total) {
+        logger.info("Total failures for jobId " + jobId + ": " + total);
     }
 
-    @Consumer(topics = "kafka-published", groupId = "consumer-group-3")
-    public void totalMessages(final Long total, final String jobId) {
-        logger.info("Total messages per job: " + total + " jobId: " + jobId);
+    @Consumer(topics = "totalMessagesPerJob", groupId = "consumer-group-3")
+    public void totalMessages(final String jobId, final Long total) {
+        logger.info("Total messages for jobId " + jobId + ": " + total);
     }
 
 }

@@ -36,16 +36,17 @@ public class ProcessAPNSTokenMetrics {
         final KStream<String, String> source = builder.stream(KAFKA_APNS_TOKEN_DELIVERY_METRICS_INPUT);
 
         // Count successes per job
-        final KTable<String, Long> successCountsPerJob = source.filter((key, value) -> value.equals("Success"))
+        final KTable<String, Long> successCountsPerJob = source.filter((key, value) -> value.equals("success"))
                 .groupByKey()
                 .count("successMessagesPerJob");
 
         successCountsPerJob.to(Serdes.String(), Serdes.Long(), "successMessagesPerJob");
 
         // Count failures per job
-        final KTable<String, Long> failCountsPerJob = source.filter((key, value) -> value.equals("Failure"))
+        final KTable<String, Long> failCountsPerJob = source.filter((key, value) -> value.equals("failure"))
                 .groupByKey()
                 .count("failedMessagesPerJob");
+
         failCountsPerJob.to(Serdes.String(), Serdes.Long(), "failedMessagesPerJob");
 
 
