@@ -24,7 +24,6 @@ public class MockProducer {
 
     @GET
     public Response publishMessage(String message) {
-
         if (producer == null) {
             return Response.status(200).entity("Producer is null").build();
         }
@@ -34,7 +33,6 @@ public class MockProducer {
             producer.send(KAFKA_APNS_TOKEN_DELIVERY_METRICS_INPUT, jobId, "failure");
             return Response.status(200).entity(message).build();
         }
-
     }
 
 }
