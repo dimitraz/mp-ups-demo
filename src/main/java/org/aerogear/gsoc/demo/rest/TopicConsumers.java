@@ -4,7 +4,6 @@ import net.wessendorf.kafka.cdi.annotation.Consumer;
 
 import java.util.logging.Logger;
 
-
 public class TopicConsumers {
 
     Logger logger = Logger.getLogger(TopicConsumers.class.getName());
