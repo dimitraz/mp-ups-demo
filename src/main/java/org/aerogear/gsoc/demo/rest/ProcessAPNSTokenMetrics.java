@@ -14,6 +14,9 @@ import javax.enterprise.event.Observes;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+/**
+ * TODO add comments
+ */
 @ApplicationScoped
 public class ProcessAPNSTokenMetrics {
 
@@ -21,20 +24,19 @@ public class ProcessAPNSTokenMetrics {
 
     private KafkaStreams streams;
 
-    public static final String KAFKA_APNS_TOKEN_DELIVERY_METRICS_INPUT = "agpush_apnsTokenDeliveryMetrics";
-
     private void startup(@Observes @Initialized(ApplicationScoped.class) Object init) {
         Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "kafka-demo-tokens");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "172.18.0.3:9092");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, KafkaClusterConfig.KAFKA_APPLICATION_ID);
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaClusterConfig.KAFKA_BOOTSTRAP_SERVER);
         props.put(StreamsConfig.KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 
         final KStreamBuilder builder = new KStreamBuilder();
 
         // Read from the source stream
-        final KStream<String, String> source = builder.stream(KAFKA_APNS_TOKEN_DELIVERY_METRICS_INPUT);
+        final KStream<String, String> source = builder.stream(KafkaClusterConfig.KAFKA_APNS_TOKEN_DELIVERY_METRICS_INPUT);
 
+        // TODO please move these topics name to the config class and rename them - if I am not wrong, they are per token
         // Count successes per job
         final KTable<String, Long> successCountsPerJob = source.filter((key, value) -> value.equals("success"))
                 .groupByKey()
