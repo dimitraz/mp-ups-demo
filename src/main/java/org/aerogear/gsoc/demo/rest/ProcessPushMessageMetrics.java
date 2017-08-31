@@ -21,16 +21,15 @@ import org.apache.kafka.streams.kstream.KTable;
  * @author Polina Koleva
  */
 @ApplicationScoped
-public class PushMessageMetricsStream {
+public class ProcessPushMessageMetrics {
 
-    Logger logger = Logger.getLogger(PushMessageMetricsStream.class.getName());
+    Logger logger = Logger.getLogger(ProcessPushMessageMetrics.class.getName());
 
     private KafkaStreams streams;
 
-    //TODO add comments
     private void startup(@Observes @Initialized(ApplicationScoped.class) Object init) {
         Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, KafkaClusterConfig.KAFKA_APPLICATION_ID);
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, KafkaClusterConfig.PUSH_METRICS_APPLICATION_ID);
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaClusterConfig.KAFKA_BOOTSTRAP_SERVER);
         props.put(StreamsConfig.KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
@@ -38,31 +37,27 @@ public class PushMessageMetricsStream {
         final KStreamBuilder builder = new KStreamBuilder();
 
         // Read from the source stream
-        final KStream<String, String> source = builder.stream(KafkaClusterConfig.KAFKA_PUSH_DELIVERY_METRICS_TOPIC);
+        final KStream<String, String> source = builder.stream(KafkaClusterConfig.PUSH_METRICS_INPUT_TOPIC);
+
+        // Count successes per message id
+        final KTable<String, Long> successCountsPerJob = source.filter((key, value) -> value.equals("success"))
+                .groupByKey()
+                .count("successMessagesPerJob");
+
+        successCountsPerJob.to(Serdes.String(), Serdes.Long(), "successMessagesPerJob");
+
 
         // Count messages that were successfully sent per message id
-        final KTable<String, Long> successfullMessageCountsPerMessageId = source.filter((key, value) -> value.equals(KafkaClusterConfig.KAFKA_METRICS_ON_DELIVERY_SUCCESS))
-                // message id
+        final KTable<String, Long> failCountsPerJob = source.filter((key, value) -> value.equals("failure"))
                 .groupByKey()
-                .count("successfullMessagesCountPerMessageId");
+                .count("failedMessagesPerJob");
 
-        // write to an output topic <messageId, #successfullySentMessages>
-        successfullMessageCountsPerMessageId.to(Serdes.String(), Serdes.Long(), KafkaClusterConfig.KAFKA_SUCCESSFULL_MESSAGES_SENT_COUND_TOPIC);
-
-        // Count messages that were successfully sent per message id
-        final KTable<String, Long> failedMessageCountsPerMessageId = source.filter((key, value) -> value.equals(KafkaClusterConfig.KAFKA_METRICS_ON_DELIVERY_FAILURE))
-                .groupByKey()
-                .count("failedMessagesCountPerMessageId");
-        
-        // write to an output topic <messageId, #failedMessages>
-        failedMessageCountsPerMessageId.to(Serdes.String(), Serdes.Long(), KafkaClusterConfig.KAFKA_FAILED_MESSAGES_SENT_COUNT_TOPIC);
-
+        failCountsPerJob.to(Serdes.String(), Serdes.Long(), "failedMessagesPerJob");
 
         // Count total messages per message id
         source.groupByKey()
-                .count("totalMessagesCountPerMessageId")
-                // write to an output topic <messageId, #totalMessagePerId>
-                .to(Serdes.String(), Serdes.Long(), KafkaClusterConfig.KAFKA_TOTAL_MESSAGES_SENT_COUNT_TOPIC);
+                .count("totalMessagesPerJob")
+                .to(Serdes.String(), Serdes.Long(), "totalMessagesPerJob");
 
 
         streams = new KafkaStreams(builder, props);
@@ -74,4 +69,5 @@ public class PushMessageMetricsStream {
         logger.warning("Shutting down the streams.");
         streams.close();
     }
+
 }

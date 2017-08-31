@@ -26,7 +26,7 @@ public class ProcessAPNSTokenMetrics {
 
     private void startup(@Observes @Initialized(ApplicationScoped.class) Object init) {
         Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, KafkaClusterConfig.KAFKA_APPLICATION_ID);
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, KafkaClusterConfig.TOKEN_METRICS_APPLICATION_ID);
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaClusterConfig.KAFKA_BOOTSTRAP_SERVER);
         props.put(StreamsConfig.KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
@@ -34,28 +34,28 @@ public class ProcessAPNSTokenMetrics {
         final KStreamBuilder builder = new KStreamBuilder();
 
         // Read from the source stream
-        final KStream<String, String> source = builder.stream(KafkaClusterConfig.KAFKA_APNS_TOKEN_DELIVERY_METRICS_INPUT);
+        final KStream<String, String> source = builder.stream(KafkaClusterConfig.TOKEN_METRICS_INPUT_TOPIC);
 
-        // TODO please move these topics name to the config class and rename them - if I am not wrong, they are per token
         // Count successes per job
         final KTable<String, Long> successCountsPerJob = source.filter((key, value) -> value.equals("success"))
                 .groupByKey()
-                .count("successMessagesPerJob");
+                .count("successTokensPerJob");
 
-        successCountsPerJob.to(Serdes.String(), Serdes.Long(), "successMessagesPerJob");
+        successCountsPerJob.to(Serdes.String(), Serdes.Long(), "successTokensPerJob");
+
 
         // Count failures per job
         final KTable<String, Long> failCountsPerJob = source.filter((key, value) -> value.equals("failure"))
                 .groupByKey()
-                .count("failedMessagesPerJob");
+                .count("failedTokensPerJob");
 
-        failCountsPerJob.to(Serdes.String(), Serdes.Long(), "failedMessagesPerJob");
+        failCountsPerJob.to(Serdes.String(), Serdes.Long(), "failedTokensPerJob");
 
 
         // Count total messages per job
         source.groupByKey()
-                .count("totalMessagesPerJob")
-                .to(Serdes.String(), Serdes.Long(), "totalMessagesPerJob");
+                .count("totalTokensPerJob")
+                .to(Serdes.String(), Serdes.Long(), "totalTokensPerJob");
 
 
         streams = new KafkaStreams(builder, props);
