@@ -20,6 +20,6 @@ public class KafkaClusterConfig {
 
     // Push message demo configuration
     public static final String PUSH_METRICS_APPLICATION_ID = "kafka-demo-push";
-    public static final String PUSH_METRICS_INPUT_TOPIC = "agpush_apnsTokenDeliveryMetrics";
+    public static final String PUSH_METRICS_INPUT_TOPIC = "agpush_pushDeliveryMetrics";
 
 }

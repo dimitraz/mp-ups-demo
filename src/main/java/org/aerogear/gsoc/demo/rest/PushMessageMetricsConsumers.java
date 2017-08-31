@@ -5,9 +5,8 @@ import java.util.logging.Logger;
 import net.wessendorf.kafka.cdi.annotation.Consumer;
 
 /**
- * TODO add comments
- * 
- * @author Polina Koleva
+ * Consume total amount of messages, successes and failures
+ * and log the result to console
  */
 public class PushMessageMetricsConsumers {
 
