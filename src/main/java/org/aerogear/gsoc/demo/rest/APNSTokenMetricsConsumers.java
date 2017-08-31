@@ -4,9 +4,9 @@ import net.wessendorf.kafka.cdi.annotation.Consumer;
 
 import java.util.logging.Logger;
 
-public class TopicConsumers {
+public class APNSTokenMetricsConsumers {
 
-    Logger logger = Logger.getLogger(TopicConsumers.class.getName());
+    Logger logger = Logger.getLogger(APNSTokenMetricsConsumers.class.getName());
 
     @Consumer(topics = "successMessagesPerJob", groupId = "consumer-group-1")
     public void totalSuccesses(final String jobId, final Long total) {
